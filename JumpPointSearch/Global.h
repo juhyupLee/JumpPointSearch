@@ -29,18 +29,27 @@ bool tempSort(Node* node1, Node* node2);
 //--------------------------------------------
 // Jump PointSearch Function
 //--------------------------------------------
+
 void JPSStart();
 void JPSSearch();
 
 
 void DirectionCheck(Node* node);
-void LeftSearch(Node* node, int32_t x, int32_t y);
-void RightSearch(Node* node, int32_t x, int32_t y);
-void UpSearch(Node* node, int32_t x, int32_t y);
-void DownSearch(Node* node, int32_t x, int32_t y);
-void LRUSearch(Node* node);
-void LRDSearch(Node* node);
-void RLUSearch(Node* node);
-void RLDSearch(Node* node);
+void LeftSearch(Node* node, int32_t x, int32_t y, int32_t gValue);
+void RightSearch(Node* node, int32_t x, int32_t y,int32_t gValue);
+void UpSearch(Node* node, int32_t x, int32_t y, int32_t gValue);
+void DownSearch(Node* node, int32_t x, int32_t y, int32_t gValue);
+void LRUSearch(Node* node,int32_t x, int32_t y, int32_t gValue);
+void LRDSearch(Node* node, int32_t x, int32_t y, int32_t gValue);
+void RLUSearch(Node* node, int32_t x, int32_t y, int32_t gValue);
+void RLDSearch(Node* node, int32_t x, int32_t y, int32_t gValue);
 
-void Draw_Check();
+bool SmallLeftSearch(Node* node, int32_t x, int32_t y);
+bool SmallRightSearch(Node* node, int32_t x, int32_t y);
+bool SmallUpSearch(Node* node, int32_t x, int32_t y);
+bool SmallDownSearch(Node* node, int32_t x, int32_t y);
+void Draw_Check(int32_t nodeX, int32_t nodeY);
+
+void CheckNCreateNode(int32_t nodeX, int32_t nodeY, int32_t gValue,ParentDirection parentDir,Node* parentNode);
+
+void CreateNewNode(int32_t nodeX, int32_t nodeY, int32_t gValue, ParentDirection parentDir, Node* parentNode);

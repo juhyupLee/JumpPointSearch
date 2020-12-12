@@ -1,6 +1,6 @@
 #pragma once
-#define MAX_HEIGHT 45
-#define MAX_WIDTH 100
+#define MAX_WIDTH 90
+#define MAX_HEIGHT 35
 #define LENGTH 15
 #define FGH_ON 0
 
@@ -50,6 +50,7 @@ extern HBRUSH g_GrayBrush;
 extern HBRUSH g_WhiteBrush;
 extern HBRUSH g_BlueBrush;
 extern HBRUSH g_GreenBrush;
+extern HBRUSH g_YellowBrush;
 
 extern int32_t g_StartX ;
 extern int32_t g_StartY ;

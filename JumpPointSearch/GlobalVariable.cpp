@@ -22,6 +22,7 @@ HBRUSH g_GrayBrush;
 HBRUSH g_WhiteBrush;
 HBRUSH g_BlueBrush;
 HBRUSH g_GreenBrush;
+HBRUSH g_YellowBrush;
 
 int32_t g_StartX = -1;
 int32_t g_StartY = -1;
