@@ -37,7 +37,7 @@ enum
     CLOSE,
     LAST_ATTRIBUTE
 };
-extern char g_CheckNum;
+extern unsigned char g_CheckNum;
 extern CList<Node*> g_OpenList;
 extern CList<Node*> g_CloseList;
 extern HDC g_HDC;
@@ -61,7 +61,7 @@ extern int32_t g_EndX;
 extern int32_t g_EndY;
 extern int32_t g_PrevEndX ;
 extern int32_t g_PrevEndY ;
-extern char g_Grid[MAX_HEIGHT][MAX_WIDTH];
+extern unsigned char g_Grid[MAX_HEIGHT][MAX_WIDTH];
 
 extern bool bStartSetting;
 extern bool bEndSetting ;

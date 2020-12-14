@@ -8,7 +8,7 @@ void Draw_End(int drawX, int drawY);
 void Draw_Nothing(int drawX, int drawY);
 
 void Draw_Grid(HDC hdc);
-void Draw_Tile(HDC hdc);
+void Clear_Tile(HDC hdc);
 void Draw_Path(Node* curNode);
 void Clear_Tile();
 void Clear_Except();

@@ -8,7 +8,7 @@
 #include <iostream>
 #include "GlobalVariable.h"
 
-char g_CheckNum = LAST_ATTRIBUTE;
+unsigned char g_CheckNum = LAST_ATTRIBUTE;
 
 CList<Node*> g_OpenList;
 CList<Node*> g_CloseList;
@@ -33,7 +33,7 @@ int32_t g_EndX = -1;
 int32_t g_EndY = -1;
 int32_t g_PrevEndX = -1;
 int32_t g_PrevEndY = -1;
-char g_Grid[MAX_HEIGHT][MAX_WIDTH];
+unsigned char g_Grid[MAX_HEIGHT][MAX_WIDTH];
 
 bool bStartSetting = false;
 bool bEndSetting = true;

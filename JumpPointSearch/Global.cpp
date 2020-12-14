@@ -169,7 +169,7 @@ void Draw_OpenNClose()
     ReleaseDC(g_hWnd, hdc);
 }
 
-void Draw_Tile(HDC hdc)
+void Clear_Tile(HDC hdc)
 {
     HBRUSH oldBrush = (HBRUSH)SelectObject(hdc, g_WhiteBrush);
 
@@ -186,6 +186,36 @@ void Draw_Tile(HDC hdc)
     SelectObject(hdc, oldBrush);
 }
 
+void Draw_CurrentTile(HDC hdc)
+{
+    HBRUSH oldBrush = (HBRUSH)SelectObject(hdc, g_WhiteBrush);
+
+    for (int y = 0; y < MAX_HEIGHT; y++)
+    {
+        for (int x = 0; x < MAX_WIDTH; x++)
+        {
+
+            switch (g_Grid[y][x])
+            {
+            case NOTHING:
+                SelectObject(hdc, g_WhiteBrush);
+                break;
+            case BLOCK:
+                SelectObject(hdc, g_GrayBrush);
+                break;
+            case START:
+                SelectObject(hdc, g_BlackBrush);
+                break;
+            case END:
+                SelectObject(hdc, g_BlackBrush);
+                break;
+            }
+            int drawX = x * LENGTH;
+            int drawY = y * LENGTH;
+            Rectangle(hdc, drawX, drawY, drawX + LENGTH, drawY + LENGTH);
+        }
+    }
+}
 void ReleaseList()
 {
     auto iterOpen = g_OpenList.begin();
@@ -220,15 +250,25 @@ void Clear_Except()
 {
     HDC hdc = GetDC(g_hWnd);
     HBRUSH oldBrush = (HBRUSH)SelectObject(hdc, g_WhiteBrush);
+    ReleaseList();
 
     for (int y = 0; y < MAX_HEIGHT; y++)
     {
         for (int x = 0; x < MAX_WIDTH; x++)
         {
-            if (g_Grid[y][x] == START || g_Grid[y][x] == END || g_Grid[y][x] == BLOCK)
+            if ((x == g_EndX && y == g_EndY) || (x == g_StartX && y == g_StartY))
             {
                 continue;
             }
+            if (g_Grid[y][x] == BLOCK)
+            {
+                continue;
+            }
+            if (g_Grid[y][x] == OPEN)
+            {
+                int a = 10;
+            }
+
             g_Grid[y][x] = NOTHING;
             
         }
@@ -238,19 +278,38 @@ void Clear_Except()
     {
         for (int x = 0; x < MAX_WIDTH; x++)
         {
+
+            //if ((x == g_EndX && y == g_EndY) || (x == g_StartX && y == g_StartY))
+            //{
+            //    continue;
+            //}
+            //if (g_Grid[y][x] == BLOCK)
+            //{
+            //    continue;
+            //}
+        /*    else
+            {
+                int drawX = x * LENGTH;
+                int drawY = y * LENGTH;
+                Rectangle(hdc, drawX, drawY, drawX + LENGTH, drawY + LENGTH);
+            }*/
+
             if (g_Grid[y][x] == NOTHING)
             {
                 int drawX = x * LENGTH;
                 int drawY = y * LENGTH;
                 Rectangle(hdc, drawX, drawY, drawX + LENGTH, drawY + LENGTH);
             }
+            else
+            {
+                int  a = 10;
+            }
         }
     }
     SelectObject(hdc, oldBrush);
     ReleaseDC(g_hWnd, hdc);
 
-    ReleaseList();
-    g_CheckNum = 0;
+    g_CheckNum = LAST_ATTRIBUTE;
 }
 
 void CheckNodeGen(int x, int y, Node* centerNode, int endX, int endY, bool dFlag)
@@ -349,27 +408,21 @@ void JPSSearch()
 
         auto iter = g_OpenList.begin();
 
-        int endX = 0;
-        int endY = 0;
-
-        GetEndPoint(&endX, &endY);
-
-        if ((*iter)->x == endX && (*iter)->y == endY)
+        if ((*iter)->x == g_EndX && (*iter)->y == g_EndY)
         {
             Draw_Path(*iter);
-
             ReleaseList();
             return;
         }
-        //GenNearbyNode(*iter);
         DirectionCheck(*iter);
 
         g_CloseList.push_back(*iter);
         g_OpenList.erase(iter);
 
         Draw_OpenNClose();
-        Sleep(15);
+        
     }
+    int a = 10;
 }
 
 
@@ -426,10 +479,12 @@ void JPSStart()
         MessageBox(g_hWnd, L"Error:Line:236", MB_OK, 0);
     }
 
+    char temp = g_Grid[0][1];
+
     Node* newNode = new Node;
-    newNode->x = startX;
-    newNode->y = startY;
-    newNode->h = abs((endX - startX)) + abs((endY - startY));
+    newNode->x = g_StartX;
+    newNode->y = g_StartY;
+    newNode->h = abs((g_EndX - g_StartX)) + abs((g_EndY - g_StartY));
     newNode->g = 0;
     newNode->parent = nullptr;
 
@@ -494,7 +549,7 @@ void DirectionCheck(Node* node)
     TextOut(hdc, 20, 20, string, wcslen(string));
     ReleaseDC(g_hWnd, hdc);
 
-    if (g_CheckNum > 126)
+    if (g_CheckNum > 254)
     {
         int a = 10;
     }
@@ -548,7 +603,15 @@ void DirectionCheck(Node* node)
             UpSearch(node, node->x, node->y - 1,node->g);
             break;
         case ParentDirection::DOWN:
-            //DownSearch(node, node->x, node->y + 1,node->g);
+            if (g_Grid[node->y][node->x - 1] == BLOCK)
+            {
+                RLDSearch(node, node->x - 1, node->y +1, node->g);
+            }
+            if (g_Grid[node->y][node->x + 1] == BLOCK)
+            {
+                LRDSearch(node, node->x + 1, node->y +1, node->g);
+            }
+            DownSearch(node, node->x, node->y +1, node->g);
             break;
         case ParentDirection::LRD:
             if (g_Grid[node->y-1][node->x] == BLOCK)
@@ -1331,7 +1394,8 @@ bool SmallDownSearch(Node* node, int32_t x, int32_t y)
 
 void Draw_Check(int32_t nodeX, int32_t nodeY)
 {
-    Sleep(40);
+    Sleep(10);
+    
     if (g_Grid[nodeY][nodeX] == BLOCK )
     {
         return;
@@ -1340,13 +1404,13 @@ void Draw_Check(int32_t nodeX, int32_t nodeY)
     {
         return;
     }
-
+    
     g_Grid[nodeY][nodeX] = g_CheckNum;
 
    
     HDC hdc = GetDC(g_hWnd);
     unsigned char r = 100;
-    unsigned char g = (g_CheckNum*10)%254;
+    unsigned char g = (g_CheckNum*10)%200;
     unsigned char b = 54;
 
     //// Red Black Green Blue White Gray
@@ -1369,6 +1433,15 @@ void Draw_Check(int32_t nodeX, int32_t nodeY)
     {
         for (int x = 0; x < MAX_WIDTH; x++)
         {
+
+            if ((x == g_EndX && y == g_EndY) || (x == g_StartX && y == g_StartY))
+            {
+                continue;
+            }
+            if (g_Grid[y][x] == BLOCK)
+            {
+                continue;
+            }
          
             if (g_Grid[y][x] == g_CheckNum)
             {
