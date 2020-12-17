@@ -53,3 +53,11 @@ void Draw_Check(int32_t nodeX, int32_t nodeY);
 void CheckNCreateNode(int32_t nodeX, int32_t nodeY, int32_t gValue,ParentDirection parentDir,Node* parentNode);
 
 void CreateNewNode(int32_t nodeX, int32_t nodeY, int32_t gValue, ParentDirection parentDir, Node* parentNode);
+
+
+
+//------------------------------------------------
+// 라인 그리기
+//------------------------------------------------
+void Draw_Check2(int32_t nodeX, int32_t nodeY);
+void LineTest(int32_t startX, int32_t startY, int32_t endX, int32_t endY);

@@ -66,3 +66,4 @@ extern unsigned char g_Grid[MAX_HEIGHT][MAX_WIDTH];
 extern bool bStartSetting;
 extern bool bEndSetting ;
 extern bool bBlockSetting ;
+extern bool bLine;

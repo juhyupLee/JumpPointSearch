@@ -136,6 +136,19 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
     switch (message)
     {
     case WM_KEYDOWN:
+
+        if (wParam == 'L')
+        {
+            if (bLine)
+            {
+                bLine = false;
+            }
+            else
+            {
+                bLine = true;
+            }
+        }
+
         if (wParam == 'C')
         {
             Clear_Except();
@@ -238,6 +251,16 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
         }
         break;
     case WM_MOUSEMOVE:
+        if (bLine)
+        {
+            int x = GET_X_LPARAM(lParam);
+            int y = GET_Y_LPARAM(lParam);
+            int xGrid = x / LENGTH;
+            int yGrid = y / LENGTH;
+            Clear_Except();
+            LineTest(g_StartX, g_StartY, xGrid, yGrid);
+
+        }
         if (bBlockSetting)
         {
             int x = GET_X_LPARAM(lParam);

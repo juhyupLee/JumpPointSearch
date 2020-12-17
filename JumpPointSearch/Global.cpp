@@ -264,10 +264,6 @@ void Clear_Except()
             {
                 continue;
             }
-            if (g_Grid[y][x] == OPEN)
-            {
-                int a = 10;
-            }
 
             g_Grid[y][x] = NOTHING;
             
@@ -278,31 +274,11 @@ void Clear_Except()
     {
         for (int x = 0; x < MAX_WIDTH; x++)
         {
-
-            //if ((x == g_EndX && y == g_EndY) || (x == g_StartX && y == g_StartY))
-            //{
-            //    continue;
-            //}
-            //if (g_Grid[y][x] == BLOCK)
-            //{
-            //    continue;
-            //}
-        /*    else
-            {
-                int drawX = x * LENGTH;
-                int drawY = y * LENGTH;
-                Rectangle(hdc, drawX, drawY, drawX + LENGTH, drawY + LENGTH);
-            }*/
-
             if (g_Grid[y][x] == NOTHING)
             {
                 int drawX = x * LENGTH;
                 int drawY = y * LENGTH;
                 Rectangle(hdc, drawX, drawY, drawX + LENGTH, drawY + LENGTH);
-            }
-            else
-            {
-                int  a = 10;
             }
         }
     }
@@ -1224,7 +1200,7 @@ bool SmallLeftSearch(Node* node, int32_t x, int32_t y)
     }
 
 
-    Draw_Check(nodeX, nodeY);
+   // Draw_Check(nodeX, nodeY);
     return SmallLeftSearch(node, nodeX - 1, nodeY);
 }
 
@@ -1276,7 +1252,7 @@ bool SmallRightSearch(Node* node, int32_t x, int32_t y)
         return true;
     }
 
-    Draw_Check(nodeX, nodeY);
+   // Draw_Check(nodeX, nodeY);
     return SmallRightSearch(node, nodeX + 1, nodeY);
 }
 
@@ -1333,7 +1309,7 @@ bool SmallUpSearch(Node* node, int32_t x, int32_t y)
 
 
 
-    Draw_Check(nodeX, nodeY);
+    //Draw_Check(nodeX, nodeY);
     return SmallUpSearch(node, nodeX, nodeY-1);
 }
 
@@ -1388,13 +1364,13 @@ bool SmallDownSearch(Node* node, int32_t x, int32_t y)
         return true;
     }
 
-    Draw_Check(nodeX,nodeY);
+    //Draw_Check(nodeX,nodeY);
     return SmallDownSearch(node, nodeX, nodeY + 1);
 }
 
 void Draw_Check(int32_t nodeX, int32_t nodeY)
 {
-    Sleep(10);
+   // Sleep(10);
     
     if (g_Grid[nodeY][nodeX] == BLOCK )
     {
@@ -1521,5 +1497,204 @@ void CreateNewNode(int32_t nodeX, int32_t nodeY,int32_t gValue,ParentDirection p
     newNode->parent = parentNode;
     newNode->parentDir = parentDir;
     g_OpenList.push_back(newNode); 
+}
+
+void Draw_Check2(int32_t nodeX, int32_t nodeY)
+{
+    HDC hdc = GetDC(g_hWnd);
+    HBRUSH oldBrush = (HBRUSH)SelectObject(hdc, g_GreenBrush);
+
+    int drawX = nodeX * LENGTH;
+    int drawY = nodeY * LENGTH;
+    Rectangle(hdc, drawX, drawY, drawX + LENGTH, drawY + LENGTH);
+
+    SelectObject(hdc, oldBrush);
+    ReleaseDC(g_hWnd, hdc);
+}
+
+void LineTest(int32_t startX, int32_t startY, int32_t endX, int32_t endY)
+{
+    int xDelta = endX - startX;
+    int yDelta = endY - startY;
+
+    int absXDelta = abs(xDelta);
+    int absYDelta = abs(yDelta);
+
+    bool bDeltaDiff = abs(xDelta) > abs(yDelta);
+
+    int error = 0;
+    int xCount = 0;
+    int yCount = 0;
+
+    int delValue = 0;
+    int loopCount = 0;
+    bool bFirst = true;
+
+    if (bDeltaDiff)
+    {
+        while (g_StartX + xCount != endX || g_StartY + yCount != endY)
+        {
+            if (yDelta == 0)
+            {
+                if (xDelta > 0)
+                {
+                    ++xCount;
+                }
+                else
+                {
+                    --xCount;
+                }
+                Draw_Check2(g_StartX + xCount, g_StartY + yCount);
+
+            }
+            else if (abs(yDelta) == 1)
+            {
+                if (bFirst)
+                {
+                    delValue = absXDelta / 2;
+                    loopCount = absXDelta - delValue;
+                }
+                while (error < loopCount)
+                {
+                    error += absYDelta;
+                    if (xDelta > 0)
+                    {
+                        xCount++;
+                    }
+                    else
+                    {
+                        xCount--;
+                    }
+                    Draw_Check2(g_StartX + xCount, g_StartY + yCount);
+                }
+                if (bFirst)
+                {
+                    error -= loopCount;
+                    if (yDelta > 0)
+                    {
+                        yCount++;
+                    }
+                    else
+                    {
+                        yCount--;
+                    }
+                    loopCount = absXDelta - loopCount;
+                    bFirst = false;
+                }
+                Draw_Check2(g_StartX + xCount, g_StartY + yCount);
+            }
+            else
+            {
+                while (error < absXDelta)
+                {
+                    error += absYDelta;
+                    if (xDelta > 0)
+                    {
+                        xCount++;
+                    }
+                    else
+                    {
+                        xCount--;
+                    }
+                    Draw_Check2(g_StartX + xCount, g_StartY + yCount);
+                }
+                error -= absXDelta;
+                if (yDelta > 0)
+                {
+                    yCount++;
+                }
+                else
+                {
+                    yCount--;
+                }
+                Draw_Check2(g_StartX + xCount, g_StartY + yCount);
+            }
+        }
+    }
+    else
+    {
+
+        while (g_StartX + xCount != endX || g_StartY + yCount != endY)
+        {
+
+            if (xDelta == 0)
+            {
+                if (yDelta > 0)
+                {
+                    yCount++;
+                }
+                else
+                {
+                    yCount--;
+                }
+                Draw_Check2(g_StartX + xCount, g_StartY + yCount);
+            }
+            else if (abs(xDelta) == 1)
+            {
+                if (bFirst)
+                {
+                    delValue = absYDelta / 2;
+                    loopCount = absYDelta - delValue;
+                }
+                while (error < loopCount)
+                {
+                    error += absXDelta;
+                    if (yDelta > 0)
+                    {
+                        yCount++;
+                    }
+                    else
+                    {
+                        yCount--;
+                    }
+                    Draw_Check2(g_StartX + xCount, g_StartY + yCount);
+                }
+                if (bFirst)
+                {
+                    error -= loopCount;
+                    if (xDelta > 0)
+                    {
+                        xCount++;
+                    }
+                    else
+                    {
+                        xCount--;
+                    }
+                    loopCount = absYDelta - loopCount;
+                    bFirst = false;
+                }
+                Draw_Check2(g_StartX + xCount, g_StartY + yCount);
+            }
+            else
+            {
+                while (error < absYDelta)
+                {
+                    error += absXDelta;
+                    if (yDelta > 0)
+                    {
+                        yCount++;
+                    }
+                    else
+                    {
+                        yCount--;
+                    }
+                    Draw_Check2(g_StartX + xCount, g_StartY + yCount);
+
+                }
+                error -= absYDelta;
+
+                if (xDelta > 0)
+                {
+                    xCount++;
+                }
+                else
+                {
+                    xCount--;
+                }
+                Draw_Check2(g_StartX + xCount, g_StartY + yCount);
+            }
+        }
+    }
+
 }
 

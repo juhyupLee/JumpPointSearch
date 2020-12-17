@@ -38,3 +38,4 @@ unsigned char g_Grid[MAX_HEIGHT][MAX_WIDTH];
 bool bStartSetting = false;
 bool bEndSetting = true;
 bool bBlockSetting = false;
+bool bLine = false;
