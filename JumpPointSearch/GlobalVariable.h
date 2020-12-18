@@ -67,3 +67,7 @@ extern bool bStartSetting;
 extern bool bEndSetting ;
 extern bool bBlockSetting ;
 extern bool bLine;
+extern bool bOpti;
+extern StraightLine straightLine;
+
+extern std::vector<Node*> pathNode;

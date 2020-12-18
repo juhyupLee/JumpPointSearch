@@ -1,8 +1,12 @@
 #include "MyLinkedList.h"
 #include <Windows.h>
 #include <iostream>
+#include "StraightLine.h"
 #include "GlobalVariable.h"
 #include "Global.h"
+
+#include <algorithm>
+#include <stack>
 
 void Init_GDI()
 {
@@ -236,7 +240,7 @@ void ReleaseList()
 
     g_OpenList.clear();
     g_CloseList.clear();
-
+    
 }
 
 void Clear_Tile()
@@ -386,7 +390,10 @@ void JPSSearch()
 
         if ((*iter)->x == g_EndX && (*iter)->y == g_EndY)
         {
+            pathNode.clear();
             Draw_Path(*iter);
+            CheckLinePath();
+            Draw_OptimizationPath();
             ReleaseList();
             return;
         }
@@ -498,10 +505,13 @@ bool tempSort(Node* node1, Node* node2)
 
 void Draw_Path(Node* curNode)
 {
+    pathNode.push_back(curNode);
+
     if (curNode->parent == nullptr)
     {
         return;
     }
+
     HDC hdc = GetDC(g_hWnd);
 
     int tempX = (curNode->x * LENGTH) + (LENGTH / 2);
@@ -517,18 +527,18 @@ void Draw_Path(Node* curNode)
 
 void DirectionCheck(Node* node)
 {
-    
     g_CheckNum++;
+    if (g_CheckNum > 254)
+    {
+        g_CheckNum = LAST_ATTRIBUTE;
+    }
     HDC hdc = GetDC(g_hWnd);
     WCHAR string[128];
     wsprintf(string, L"g_CheckNUM:%d", g_CheckNum);
     TextOut(hdc, 20, 20, string, wcslen(string));
     ReleaseDC(g_hWnd, hdc);
 
-    if (g_CheckNum > 254)
-    {
-        int a = 10;
-    }
+
     if (node->parent == nullptr)
     {
 
@@ -646,6 +656,8 @@ void DirectionCheck(Node* node)
             break;
         }
     }
+
+    //OnlyDraw_Check();
 }
 
 void LeftSearch(Node* node, int32_t x, int32_t y,int32_t gValue)
@@ -700,6 +712,7 @@ void LeftSearch(Node* node, int32_t x, int32_t y,int32_t gValue)
     }
 
 
+    //Check_Grid(nodeX, nodeY);
     Draw_Check(nodeX,nodeY);
    
     LeftSearch(node, nodeX - 1, nodeY, gValue+10);
@@ -758,6 +771,7 @@ void RightSearch(Node* node, int32_t x, int32_t y, int32_t gValue)
    
 
     Draw_Check(nodeX,nodeY);
+    //Check_Grid(nodeX, nodeY);
     RightSearch(node, nodeX +1, nodeY, gValue+10);
 }
 
@@ -814,6 +828,7 @@ void UpSearch(Node* node, int32_t x, int32_t y, int32_t gValue)
    
   
     Draw_Check(nodeX, nodeY);
+    //Check_Grid(nodeX, nodeY);
     UpSearch(node, nodeX, nodeY-1, gValue +10);
 }
 
@@ -839,17 +854,17 @@ void DownSearch(Node* node, int32_t x, int32_t y, int32_t gValue)
 
     bool bCanMakeCorner = false;
 
-    if ((0 <= nodeY - 1 && nodeY - 1 <= MAX_HEIGHT - 1) &&
+    if ((0 <= nodeY  + 1 && nodeY + 1 <= MAX_HEIGHT - 1) &&
         (0 <= nodeX - 1 && nodeX - 1 <= MAX_WIDTH - 1))
     {
         if(g_Grid[nodeY][nodeX - 1] == BLOCK &&
-            g_Grid[nodeY-1][nodeX - 1] == NOTHING)
+            g_Grid[nodeY+1][nodeX - 1] == NOTHING)
         {
             bCanMakeCorner = true;
         }
     }
 
-    if ((0 <= nodeY - 1 && nodeY - 1 <= MAX_HEIGHT - 1) &&
+    if ((0 <= nodeY + 1 && nodeY + 1 <= MAX_HEIGHT - 1) &&
         (0 <= nodeX + 1 && nodeX + 1 <= MAX_WIDTH - 1))
     {
         if (g_Grid[nodeY][nodeX + 1] == BLOCK &&
@@ -866,6 +881,7 @@ void DownSearch(Node* node, int32_t x, int32_t y, int32_t gValue)
 
 
     Draw_Check(nodeX, nodeY);
+    //Check_Grid(nodeX, nodeY);
     DownSearch(node, nodeX, nodeY + 1, gValue+10);
 }
 
@@ -885,6 +901,7 @@ void LRUSearch(Node* node, int32_t x, int32_t y, int32_t gValue)
     if (nodeX == g_EndX && nodeY == g_EndY)
     {
         CheckNCreateNode(nodeX, nodeY, gValue, ParentDirection::LRU, node);
+        //Check_Grid(nodeX, nodeY);
         Draw_Check(nodeX, nodeY);
         return;
     }
@@ -917,6 +934,7 @@ void LRUSearch(Node* node, int32_t x, int32_t y, int32_t gValue)
     if (bCanMakeCorner)
     {
         CheckNCreateNode(nodeX, nodeY, gValue, ParentDirection::LRU, node);
+        //Check_Grid(nodeX, nodeY);
         Draw_Check(nodeX, nodeY);
 
         return;
@@ -925,6 +943,7 @@ void LRUSearch(Node* node, int32_t x, int32_t y, int32_t gValue)
     if (SmallRightSearch(node, nodeX+1, nodeY))
     {
         CheckNCreateNode(nodeX, nodeY, gValue, ParentDirection::LRU, node);
+        //Check_Grid(nodeX, nodeY);
         Draw_Check(nodeX, nodeY);
         return;
     }
@@ -932,11 +951,13 @@ void LRUSearch(Node* node, int32_t x, int32_t y, int32_t gValue)
     if (SmallUpSearch(node, nodeX, nodeY-1))
     {
         CheckNCreateNode(nodeX, nodeY, gValue, ParentDirection::LRU, node);
+        //Check_Grid(nodeX, nodeY);
         Draw_Check(nodeX, nodeY);
         return;
     }
   
     Draw_Check(nodeX, nodeY);
+    //Check_Grid(nodeX, nodeY);
     LRUSearch(node, nodeX +1, nodeY - 1, gValue + 15);
 }
 
@@ -956,7 +977,7 @@ void LRDSearch(Node* node, int32_t x, int32_t y, int32_t gValue)
     if (nodeX == g_EndX && nodeY == g_EndY)
     {
         CheckNCreateNode(nodeX, nodeY, gValue, ParentDirection::LRD, node);
-        Draw_Check(nodeX, nodeY);
+        Check_Grid(nodeX, nodeY);
         return;
     }
     //----------------------------------------------------
@@ -988,7 +1009,7 @@ void LRDSearch(Node* node, int32_t x, int32_t y, int32_t gValue)
     if (bCanMakeCorner)
     {
         CheckNCreateNode(nodeX, nodeY, gValue, ParentDirection::LRD, node);
-        Draw_Check(nodeX, nodeY);
+        Check_Grid(nodeX, nodeY);
 
         return;
     }
@@ -996,19 +1017,20 @@ void LRDSearch(Node* node, int32_t x, int32_t y, int32_t gValue)
     if (SmallRightSearch(node, nodeX+1, nodeY))
     {
         CheckNCreateNode(nodeX, nodeY, gValue, ParentDirection::LRD, node);
-        Draw_Check(nodeX, nodeY);
+        Check_Grid(nodeX, nodeY);
         return;
     }
 
     if (SmallDownSearch(node, nodeX, nodeY+1))
     {
         CheckNCreateNode(nodeX, nodeY, gValue, ParentDirection::LRD, node);
-        Draw_Check(nodeX, nodeY);
+        Check_Grid(nodeX, nodeY);
         return;
     }
  
 
     Draw_Check(nodeX, nodeY);
+    //Check_Grid(nodeX, nodeY);
     LRDSearch(node, nodeX + 1, nodeY + 1, gValue + 15);
 }
 
@@ -1028,7 +1050,7 @@ void RLUSearch(Node* node, int32_t x, int32_t y, int32_t gValue)
     if (nodeX == g_EndX && nodeY == g_EndY)
     {
         CheckNCreateNode(nodeX, nodeY, gValue, ParentDirection::RLU, node);
-        Draw_Check(nodeX, nodeY);
+        Check_Grid(nodeX, nodeY);
         return;
     }
     //----------------------------------------------------
@@ -1060,7 +1082,7 @@ void RLUSearch(Node* node, int32_t x, int32_t y, int32_t gValue)
     if (bCanMakeCorner)
     {
         CheckNCreateNode(nodeX, nodeY, gValue, ParentDirection::RLU, node);
-        Draw_Check(nodeX, nodeY);
+        Check_Grid(nodeX, nodeY);
 
         return;
     }
@@ -1069,19 +1091,20 @@ void RLUSearch(Node* node, int32_t x, int32_t y, int32_t gValue)
     {
      
         CheckNCreateNode(nodeX, nodeY, gValue, ParentDirection::RLU, node);
-        Draw_Check(nodeX, nodeY);
+        Check_Grid(nodeX, nodeY);
         return;
     }
 
     if (SmallUpSearch(node, nodeX, nodeY-1))
     {
         CheckNCreateNode(nodeX, nodeY, gValue, ParentDirection::RLU, node);
-        Draw_Check(nodeX, nodeY);
+        Check_Grid(nodeX, nodeY);
         return;
     }
 
 
     Draw_Check(nodeX, nodeY);
+    //Check_Grid(nodeX, nodeY);
     RLUSearch(node, nodeX -1, nodeY-1, gValue + 15);
 }
 
@@ -1101,6 +1124,7 @@ void RLDSearch(Node* node, int32_t x, int32_t y, int32_t gValue)
     if (nodeX == g_EndX && nodeY == g_EndY)
     {
         CheckNCreateNode(nodeX, nodeY, gValue, ParentDirection::RLD, node);
+        Check_Grid(nodeX, nodeY);
         return;
     }
     //----------------------------------------------------
@@ -1132,22 +1156,26 @@ void RLDSearch(Node* node, int32_t x, int32_t y, int32_t gValue)
     if (bCanMakeCorner)
     {
         CheckNCreateNode(nodeX, nodeY, gValue, ParentDirection::RLD, node);
+        Check_Grid(nodeX, nodeY);
         return;
     }
 
     if (SmallLeftSearch(node, nodeX-1, nodeY))
     {
         CheckNCreateNode(nodeX, nodeY, gValue, ParentDirection::RLD, node);
+        Check_Grid(nodeX, nodeY);
         return;
     }
 
     if (SmallDownSearch(node, nodeX, nodeY+1))
     {
         CheckNCreateNode(nodeX, nodeY, gValue, ParentDirection::RLD, node);
+        Check_Grid(nodeX, nodeY);
         return;
     }
 
     Draw_Check(nodeX, nodeY);
+    //Check_Grid(nodeX, nodeY);
     RLDSearch(node, nodeX - 1, nodeY + 1, gValue + 15);
 }
 
@@ -1200,7 +1228,8 @@ bool SmallLeftSearch(Node* node, int32_t x, int32_t y)
     }
 
 
-   // Draw_Check(nodeX, nodeY);
+     Draw_Check(nodeX, nodeY);
+    //Check_Grid(nodeX, nodeY);
     return SmallLeftSearch(node, nodeX - 1, nodeY);
 }
 
@@ -1252,7 +1281,8 @@ bool SmallRightSearch(Node* node, int32_t x, int32_t y)
         return true;
     }
 
-   // Draw_Check(nodeX, nodeY);
+     Draw_Check(nodeX, nodeY);
+    //Check_Grid(nodeX, nodeY);
     return SmallRightSearch(node, nodeX + 1, nodeY);
 }
 
@@ -1284,18 +1314,16 @@ bool SmallUpSearch(Node* node, int32_t x, int32_t y)
         (0 <= nodeX - 1 && nodeX - 1 <= MAX_WIDTH - 1))
     {
         if ((g_Grid[nodeY][nodeX - 1] == BLOCK &&
-            g_Grid[nodeY - 1][nodeX] == NOTHING &&
             g_Grid[nodeY - 1][nodeX - 1] == NOTHING)) 
         {
             bCanMakeCorner = true;
         }
     }
 
-    if ((0 <= nodeY + 1 && nodeY + 1 <= MAX_HEIGHT - 1) &&
-        (0 <= nodeX - 1 && nodeX - 1 <= MAX_WIDTH - 1))
+    if ((0 <= nodeY - 1 && nodeY - 1 <= MAX_HEIGHT - 1) &&
+        (0 <= nodeX + 1 && nodeX + 1 <= MAX_WIDTH - 1))
     {
         if (g_Grid[nodeY][nodeX + 1] == BLOCK &&
-            g_Grid[nodeY - 1][nodeX ] == NOTHING &&
             g_Grid[nodeY - 1][nodeX + 1] == NOTHING)
         {
             bCanMakeCorner = true;
@@ -1309,7 +1337,8 @@ bool SmallUpSearch(Node* node, int32_t x, int32_t y)
 
 
 
-    //Draw_Check(nodeX, nodeY);
+    Draw_Check(nodeX, nodeY);
+    //Check_Grid(nodeX, nodeY);
     return SmallUpSearch(node, nodeX, nodeY-1);
 }
 
@@ -1336,16 +1365,16 @@ bool SmallDownSearch(Node* node, int32_t x, int32_t y)
 
     bool bCanMakeCorner = false;
 
-    if ((0 <= nodeY - 1 && nodeY - 1 <= MAX_HEIGHT - 1) &&
+    if ((0 <= nodeY + 1 && nodeY + 1 <= MAX_HEIGHT - 1) &&
         (0 <= nodeX - 1 && nodeX - 1 <= MAX_WIDTH - 1))
     {
         if (g_Grid[nodeY][nodeX - 1] == BLOCK &&
-            g_Grid[nodeY - 1][nodeX - 1] == NOTHING)
+            g_Grid[nodeY + 1][nodeX - 1] == NOTHING)
         {
             bCanMakeCorner = true;
         }
     }
-    if ((0 <= nodeY - 1 && nodeY - 1 <= MAX_HEIGHT - 1) &&
+    if ((0 <= nodeY + 1 && nodeY + 1 <= MAX_HEIGHT - 1) &&
         (0 <= nodeX + 1 && nodeX + 1 <= MAX_WIDTH - 1))
     {
         if (g_Grid[nodeY][nodeX + 1] == BLOCK &&
@@ -1359,18 +1388,15 @@ bool SmallDownSearch(Node* node, int32_t x, int32_t y)
         return true;
     }
 
-    if (bCanMakeCorner)
-    {
-        return true;
-    }
 
-    //Draw_Check(nodeX,nodeY);
+    Draw_Check(nodeX,nodeY);
+    //Check_Grid(nodeX, nodeY);
     return SmallDownSearch(node, nodeX, nodeY + 1);
 }
 
 void Draw_Check(int32_t nodeX, int32_t nodeY)
 {
-   // Sleep(10);
+    //Sleep(30);
     
     if (g_Grid[nodeY][nodeX] == BLOCK )
     {
@@ -1385,9 +1411,9 @@ void Draw_Check(int32_t nodeX, int32_t nodeY)
 
    
     HDC hdc = GetDC(g_hWnd);
-    unsigned char r = 100;
-    unsigned char g = (g_CheckNum*10)%200;
-    unsigned char b = 54;
+    unsigned char r = (g_CheckNum * 50) % 200;
+    unsigned char g = (g_CheckNum*30)%200;
+    unsigned char b = (g_CheckNum * 70) % 200;
 
     //// Red Black Green Blue White Gray
     //if (r == 254)
@@ -1436,12 +1462,63 @@ void Draw_Check(int32_t nodeX, int32_t nodeY)
 
 }
 
+void Check_Grid(int32_t nodeX, int32_t nodeY)
+{
+    if (g_Grid[nodeY][nodeX] == BLOCK)
+    {
+        return;
+    }
+    if ((nodeX == g_EndX && nodeY == g_EndY) || (nodeX == g_StartX && nodeY == g_StartY))
+    {
+        return;
+    }
+    g_Grid[nodeY][nodeX] = g_CheckNum;
+
+}
+
+void OnlyDraw_Check()
+{
+    HDC hdc = GetDC(g_hWnd);
+    unsigned char r = 100;
+    unsigned char g = (g_CheckNum * 10) % 200;
+    unsigned char b = 54;
+
+    HBRUSH  randBrush = CreateSolidBrush(RGB(r, g, b));
+    HBRUSH oldBrush = (HBRUSH)SelectObject(hdc, randBrush);
+    for (int y = 0; y < MAX_HEIGHT; y++)
+    {
+        for (int x = 0; x < MAX_WIDTH; x++)
+        {
+
+            if ((x == g_EndX && y == g_EndY) || (x == g_StartX && y == g_StartY))
+            {
+                continue;
+            }
+            if (g_Grid[y][x] == BLOCK)
+            {
+                continue;
+            }
+
+            if (g_Grid[y][x] == g_CheckNum)
+            {
+                int drawX = x * LENGTH;
+                int drawY = y * LENGTH;
+
+                Rectangle(hdc, drawX, drawY, drawX + LENGTH, drawY + LENGTH);
+            }
+        }
+    }
+    SelectObject(hdc, oldBrush);
+    DeleteObject(randBrush);
+    ReleaseDC(g_hWnd, hdc);
+
+    Draw_OpenNClose();
+}
+
 void CheckNCreateNode(int32_t nodeX, int32_t nodeY, int32_t gValue, ParentDirection parentDir, Node* parentNode)
 {
     auto openIter = g_OpenList.begin();
     auto closeIter = g_CloseList.begin();
-
-    bool bRenew = false;
 
     Node* changeNode = nullptr;
 
@@ -1474,7 +1551,6 @@ void CheckNCreateNode(int32_t nodeX, int32_t nodeY, int32_t gValue, ParentDirect
         changeNode->f = changeNode->g + changeNode->h;
         changeNode->parentDir = parentDir;
         changeNode->parent = parentNode;
-
     }
     else
     {
@@ -1485,7 +1561,6 @@ void CheckNCreateNode(int32_t nodeX, int32_t nodeY, int32_t gValue, ParentDirect
 
 void CreateNewNode(int32_t nodeX, int32_t nodeY,int32_t gValue,ParentDirection parentDir, Node* parentNode)
 {
-
     int hValue = 10;
 
     Node* newNode = new Node;
@@ -1554,7 +1629,7 @@ void LineTest(int32_t startX, int32_t startY, int32_t endX, int32_t endY)
                     delValue = absXDelta / 2;
                     loopCount = absXDelta - delValue;
                 }
-                while (error < loopCount)
+                while (true)//error < loopCount)
                 {
                     error += absYDelta;
                     if (xDelta > 0)
@@ -1564,6 +1639,10 @@ void LineTest(int32_t startX, int32_t startY, int32_t endX, int32_t endY)
                     else
                     {
                         xCount--;
+                    }
+                    if (error >= loopCount)
+                    {
+                        break;
                     }
                     Draw_Check2(g_StartX + xCount, g_StartY + yCount);
                 }
@@ -1585,9 +1664,10 @@ void LineTest(int32_t startX, int32_t startY, int32_t endX, int32_t endY)
             }
             else
             {
-                while (error < absXDelta)
+                while (true)//error < absXDelta)
                 {
                     error += absYDelta;
+
                     if (xDelta > 0)
                     {
                         xCount++;
@@ -1595,6 +1675,11 @@ void LineTest(int32_t startX, int32_t startY, int32_t endX, int32_t endY)
                     else
                     {
                         xCount--;
+                    }
+
+                    if (error >= absXDelta)
+                    {
+                        break;
                     }
                     Draw_Check2(g_StartX + xCount, g_StartY + yCount);
                 }
@@ -1613,7 +1698,6 @@ void LineTest(int32_t startX, int32_t startY, int32_t endX, int32_t endY)
     }
     else
     {
-
         while (g_StartX + xCount != endX || g_StartY + yCount != endY)
         {
 
@@ -1636,7 +1720,7 @@ void LineTest(int32_t startX, int32_t startY, int32_t endX, int32_t endY)
                     delValue = absYDelta / 2;
                     loopCount = absYDelta - delValue;
                 }
-                while (error < loopCount)
+                while (true)
                 {
                     error += absXDelta;
                     if (yDelta > 0)
@@ -1646,6 +1730,10 @@ void LineTest(int32_t startX, int32_t startY, int32_t endX, int32_t endY)
                     else
                     {
                         yCount--;
+                    }
+                    if (error >= loopCount)
+                    {
+                        break;
                     }
                     Draw_Check2(g_StartX + xCount, g_StartY + yCount);
                 }
@@ -1667,7 +1755,7 @@ void LineTest(int32_t startX, int32_t startY, int32_t endX, int32_t endY)
             }
             else
             {
-                while (error < absYDelta)
+                while (true)
                 {
                     error += absXDelta;
                     if (yDelta > 0)
@@ -1678,8 +1766,11 @@ void LineTest(int32_t startX, int32_t startY, int32_t endX, int32_t endY)
                     {
                         yCount--;
                     }
+                    if (error >= absYDelta)
+                    {
+                        break;
+                    }
                     Draw_Check2(g_StartX + xCount, g_StartY + yCount);
-
                 }
                 error -= absYDelta;
 
@@ -1698,3 +1789,128 @@ void LineTest(int32_t startX, int32_t startY, int32_t endX, int32_t endY)
 
 }
 
+void CheckLinePath()
+{
+    int index1 = 0;
+    int index2 = index1+1;
+    std::stack<Node*> tempStack;
+
+    while (index2< pathNode.size())
+    {
+            //직선체크하다가 블락을 만나버리면
+            if (!BlockCheck(pathNode[index1]->x, pathNode[index1]->y, pathNode[index2]->x, pathNode[index2]->y))
+            {
+                //첫번째꺼 제외
+                tempStack.pop();
+                int cnt = 0;
+                while (!tempStack.empty())
+                {
+                    DeleteVector(tempStack.top());
+                    tempStack.pop();
+                    cnt++;
+                }
+                index1 = index2 - 1-cnt;
+                index2 = index1;    
+            }
+            else
+            {
+                tempStack.push(pathNode[index2]);
+                if (index2 == pathNode.size() - 1)
+                {
+                    tempStack.pop();
+
+                    while (!tempStack.empty())
+                    {
+                        DeleteVector(tempStack.top());
+                        tempStack.pop();
+                    }
+                }
+            }
+            index2++;
+    }
+}
+
+bool BlockCheck(int32_t startX, int32_t startY, int32_t endX, int32_t endY)
+{
+    std::vector<StraightLine::Point*> temp = straightLine.GetLineValue(startX, startY, endX, endY);
+
+    for (size_t i = 0; i < temp.size(); i++)
+    {
+        if (g_Grid[temp[i]->m_Y][temp[i]->m_X] == BLOCK)
+        {
+            return false;
+        }
+    }
+    return true;
+}
+
+void DeleteVector(Node* node)
+{
+    auto iter = pathNode.begin();
+
+    for (; iter != pathNode.end();++iter)
+    {
+        if ((*iter) == node)
+        {
+            pathNode.erase(iter);
+            break;
+
+        }
+    }
+}
+
+void Draw_OptimizationPath2()
+{
+    for (size_t i = 0; i + 1 < pathNode.size(); i++)
+    {
+        std::vector<StraightLine::Point*> temp = straightLine.GetLineValue(pathNode[i]->x, pathNode[i]->y, pathNode[i + 1]->x, pathNode[i + 1]->y);
+
+        for (size_t i = 0; i < temp.size(); i++)
+        {
+            Draw_Check2(temp[i]->m_X, temp[i]->m_Y);
+        }
+    }
+}
+void Draw_OptimizationPath()
+{
+    HDC hdc = GetDC(g_hWnd);
+    HPEN pen = CreatePen(PS_SOLID, 1, RGB(255, 0, 0));
+
+    HPEN oldPen = (HPEN)SelectObject(hdc, pen);
+
+    for (size_t i = 0; i+1 < pathNode.size(); i++)
+    {
+        int tempX = (pathNode[i]->x * LENGTH) + (LENGTH / 2);
+        int tempY = (pathNode[i]->y * LENGTH) + (LENGTH / 2);
+        int tempParentX = (pathNode[i+1]->x * LENGTH) + (LENGTH / 2);
+        int tempParentY = (pathNode[i + 1]->y * LENGTH) + (LENGTH / 2);
+        MoveToEx(hdc, tempX, tempY, NULL);
+        LineTo(hdc, tempParentX, tempParentY);
+    }
+ 
+    SelectObject(hdc, oldPen);
+    DeleteObject(pen);
+    ReleaseDC(g_hWnd, hdc);
+}
+
+void Draw_Block()
+{
+    HDC hdc = GetDC(g_hWnd);
+    HBRUSH oldBrush = (HBRUSH)SelectObject(hdc, g_GrayBrush);
+
+
+    for (int y = 0; y < MAX_HEIGHT; y++)
+    {
+        for (int x = 0; x < MAX_WIDTH; x++)
+        {
+            if (g_Grid[y][x] == BLOCK)
+            {
+                int drawX = x * LENGTH;
+                int drawY = y * LENGTH;
+                Rectangle(hdc, drawX, drawY, drawX + LENGTH, drawY + LENGTH);
+            }
+        }
+    }
+    SelectObject(hdc, oldBrush);
+    ReleaseDC(g_hWnd, hdc);
+}

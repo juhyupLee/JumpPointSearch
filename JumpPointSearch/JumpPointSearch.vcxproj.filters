@@ -39,6 +39,9 @@
     <ClInclude Include="MyLinkedList.h">
       <Filter>소스 파일\Juhyup Lib</Filter>
     </ClInclude>
+    <ClInclude Include="StraightLine.h">
+      <Filter>소스 파일\Juhyup Lib</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="JumpPointSearch.cpp">
@@ -48,6 +51,9 @@
       <Filter>소스 파일\Juhyup Lib</Filter>
     </ClCompile>
     <ClCompile Include="GlobalVariable.cpp">
+      <Filter>소스 파일\Juhyup Lib</Filter>
+    </ClCompile>
+    <ClCompile Include="StraightLine.cpp">
       <Filter>소스 파일\Juhyup Lib</Filter>
     </ClCompile>
   </ItemGroup>

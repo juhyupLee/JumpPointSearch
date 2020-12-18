@@ -7,6 +7,7 @@
 #include <Windows.h>
 #include <iostream>
 #include <windowsx.h>
+#include "StraightLine.h"
 #include "GlobalVariable.h"
 #include "Global.h"
 
@@ -149,6 +150,22 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
             }
         }
 
+        if (wParam == 'O')
+        {
+            if (bOpti)
+            {
+                bOpti = false;
+            }
+            else
+            {
+                bOpti = true;
+            }
+        }
+        if (wParam == 'D')
+        {
+            Draw_OptimizationPath();
+        }
+
         if (wParam == 'C')
         {
             Clear_Except();
@@ -258,8 +275,13 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
             int xGrid = x / LENGTH;
             int yGrid = y / LENGTH;
             Clear_Except();
-            LineTest(g_StartX, g_StartY, xGrid, yGrid);
+            //LineTest(g_StartX, g_StartY, xGrid, yGrid)
+            std::vector<StraightLine::Point*> temp= straightLine.GetLineValue(g_StartX, g_StartY, xGrid, yGrid);
 
+            for (size_t i = 0; i < temp.size(); i++)
+            {
+                Draw_Check2(temp[i]->m_X, temp[i]->m_Y);
+            }
         }
         if (bBlockSetting)
         {

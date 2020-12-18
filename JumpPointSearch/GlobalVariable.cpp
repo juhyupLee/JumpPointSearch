@@ -6,7 +6,9 @@
 #include "MyLinkedList.h"
 #include <Windows.h>
 #include <iostream>
+#include "StraightLine.h"
 #include "GlobalVariable.h"
+
 
 unsigned char g_CheckNum = LAST_ATTRIBUTE;
 
@@ -39,3 +41,9 @@ bool bStartSetting = false;
 bool bEndSetting = true;
 bool bBlockSetting = false;
 bool bLine = false;
+bool bOpti = false;
+
+StraightLine straightLine;
+
+
+std::vector<Node*> pathNode;
